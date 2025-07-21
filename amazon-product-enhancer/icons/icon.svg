@@ -1,0 +1,8 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" fill="#FF9900" rx="16"/>
+  <text x="64" y="45" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">A+</text>
+  <text x="64" y="75" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="white">Enhanced</text>
+  <rect x="20" y="85" width="88" height="8" fill="white" rx="4"/>
+  <rect x="20" y="100" width="60" height="6" fill="white" rx="3"/>
+  <rect x="20" y="110" width="40" height="6" fill="white" rx="3"/>
+</svg>

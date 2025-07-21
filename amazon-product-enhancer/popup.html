@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Amazon Product Enhancer</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    
+    h1 {
+      font-size: 16px;
+      color: #232F3E;
+      margin-bottom: 15px;
+    }
+    
+    .toggle-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .toggle-label {
+      font-size: 14px;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+    
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 20px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: #FF9900;
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+    
+    .divider {
+      height: 1px;
+      background-color: #e7e7e7;
+      margin: 15px 0;
+    }
+    
+    .footer {
+      font-size: 12px;
+      color: #565959;
+      text-align: center;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Amazon Product Enhancer</h1>
+  
+  <div class="toggle-container">
+    <span class="toggle-label">启用插件</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="enabled">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="divider"></div>
+  
+  <div class="toggle-container">
+    <span class="toggle-label">显示BSR排名</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="showBSR">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="toggle-container">
+    <span class="toggle-label">显示ASIN</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="showASIN">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="toggle-container">
+    <span class="toggle-label">显示品牌</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="showBrand">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="toggle-container">
+    <span class="toggle-label">显示销售数据</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="showSalesData">
+      <span class="slider"></span>
+    </label>
+  </div>
+  
+  <div class="footer">
+    版本 1.0.0
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

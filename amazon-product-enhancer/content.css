@@ -1,0 +1,50 @@
+/* Content CSS for Amazon Product Enhancer */
+
+.amz-enhancer-container {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid #e7e7e7;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.amz-enhancer-title {
+  font-weight: bold;
+  color: #232F3E;
+  margin-bottom: 4px;
+}
+
+.amz-enhancer-data {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.amz-enhancer-item {
+  margin-right: 12px;
+  margin-bottom: 4px;
+}
+
+.amz-enhancer-label {
+  font-weight: bold;
+  color: #565959;
+}
+
+.amz-enhancer-value {
+  color: #0066c0;
+}
+
+.amz-enhancer-bsr {
+  color: #007600;
+}
+
+.amz-enhancer-loading {
+  color: #565959;
+  font-style: italic;
+}
+
+.amz-enhancer-error {
+  color: #c40000;
+  font-style: italic;
+}
