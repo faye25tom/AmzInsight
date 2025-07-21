@@ -83,57 +83,266 @@
       text-align: center;
       margin-top: 15px;
     }
+    
+    .setting-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .setting-label {
+      font-size: 14px;
+    }
+    
+    .setting-input {
+      width: 60px;
+      padding: 4px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    .button-container {
+      display: flex;
+      justify-content: center;
+      margin: 15px 0;
+    }
+    
+    .action-button {
+      background-color: #FF9900;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .action-button:hover {
+      background-color: #e88a00;
+    }
+    
+    .cache-stats {
+      font-size: 12px;
+      color: #565959;
+      margin-top: 10px;
+      text-align: center;
+    }
+    
+    .tab-container {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 15px;
+    }
+    
+    .tab {
+      padding: 8px 15px;
+      cursor: pointer;
+      font-size: 14px;
+      border: 1px solid transparent;
+      border-bottom: none;
+      margin-bottom: -1px;
+    }
+    
+    .tab.active {
+      border-color: #ddd;
+      border-bottom-color: white;
+      background-color: white;
+      color: #232F3E;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .error-log-container {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 5px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      background-color: #f9f9f9;
+    }
+    
+    .log-entry {
+      margin-bottom: 5px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .log-entry-error {
+      color: #a94442;
+    }
+    
+    .log-entry-warn {
+      color: #8a6d3b;
+    }
+    
+    .log-entry-info {
+      color: #31708f;
+    }
+    
+    .button-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .small-button {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
-  <h1>Amazon Product Enhancer</h1>
+  <div class="tab-container">
+    <div class="tab active" data-tab="general">常规设置</div>
+    <div class="tab" data-tab="advanced">高级设置</div>
+    <div class="tab" data-tab="debug">调试</div>
+  </div>
   
-  <div class="toggle-container">
-    <span class="toggle-label">启用插件</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="enabled">
-      <span class="slider"></span>
-    </label>
+  <div id="general" class="tab-content active">
+    <h1>Amazon Product Enhancer</h1>
+    
+    <div class="toggle-container">
+      <span class="toggle-label">启用插件</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="enabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="divider"></div>
+    
+    <div class="toggle-container">
+      <span class="toggle-label">显示BSR排名</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="showBSR">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="toggle-container">
+      <span class="toggle-label">显示ASIN</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="showASIN">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="toggle-container">
+      <span class="toggle-label">显示品牌</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="showBrand">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="toggle-container">
+      <span class="toggle-label">显示销售数据</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="showSalesData">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+  
+  <div id="advanced" class="tab-content">
+    <h1>缓存设置</h1>
+    
+    <div class="setting-container">
+      <span class="setting-label">缓存过期时间 (小时)</span>
+      <input type="number" id="cacheExpiry" min="1" max="168" class="setting-input">
+    </div>
+    
+    <div class="setting-container">
+      <span class="setting-label">最大缓存项目数</span>
+      <input type="number" id="maxCacheSize" min="100" max="2000" class="setting-input">
+    </div>
+    
+    <div class="button-container">
+      <button id="clearCache" class="action-button">清除缓存</button>
+    </div>
+    
+    <div class="cache-stats">
+      <div id="cacheStats">缓存统计: 加载中...</div>
+    </div>
+    
+    <div class="divider"></div>
+    
+    <h1>错误处理设置</h1>
+    
+    <div class="setting-container">
+      <span class="setting-label">最大重试次数</span>
+      <input type="number" id="maxRetries" min="0" max="5" class="setting-input">
+    </div>
+    
+    <div class="toggle-container">
+      <span class="toggle-label">启用错误报告</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="enableErrorReporting">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="toggle-container">
+      <span class="toggle-label">显示用户友好错误</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="showUserFriendlyErrors">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+  
+  <div id="debug" class="tab-content">
+    <h1>调试工具</h1>
+    
+    <div class="toggle-container">
+      <span class="toggle-label">调试模式</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="debugMode">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="toggle-container">
+      <span class="toggle-label">全局错误捕获</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="enableGlobalErrorHandler">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <h1>错误日志</h1>
+    
+    <div class="error-log-container" id="errorLogContainer">
+      <div class="log-entry log-entry-info">加载错误日志中...</div>
+    </div>
+    
+    <div class="button-row">
+      <button id="clearErrorLog" class="action-button small-button">清除日志</button>
+      <button id="downloadErrorLog" class="action-button small-button">下载日志</button>
+      <button id="refreshErrorLog" class="action-button small-button">刷新日志</button>
+    </div>
   </div>
   
   <div class="divider"></div>
   
-  <div class="toggle-container">
-    <span class="toggle-label">显示BSR排名</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="showBSR">
-      <span class="slider"></span>
-    </label>
-  </div>
-  
-  <div class="toggle-container">
-    <span class="toggle-label">显示ASIN</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="showASIN">
-      <span class="slider"></span>
-    </label>
-  </div>
-  
-  <div class="toggle-container">
-    <span class="toggle-label">显示品牌</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="showBrand">
-      <span class="slider"></span>
-    </label>
-  </div>
-  
-  <div class="toggle-container">
-    <span class="toggle-label">显示销售数据</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="showSalesData">
-      <span class="slider"></span>
-    </label>
+  <div class="button-container">
+    <button id="resetSettings" class="action-button" style="background-color: #565959;">恢复默认设置</button>
   </div>
   
   <div class="footer">
     版本 1.0.0
   </div>
   
+  <script src="error-handling.js"></script>
+  <script src="settings-manager.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

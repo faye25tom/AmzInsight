@@ -47,7 +47,7 @@
         "https://www.amazon.com.mx/s*",
         "https://www.amazon.com.br/s*"
       ],
-      "js": ["content.js"],
+      "js": ["ui-renderer.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
     }
@@ -73,7 +73,7 @@
   
   "web_accessible_resources": [
     {
-      "resources": ["icons/*"],
+      "resources": ["icons/*", "settings-manager.js"],
       "matches": [
         "https://www.amazon.com/*", 
         "https://www.amazon.cn/*", 

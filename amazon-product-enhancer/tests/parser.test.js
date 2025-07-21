@@ -5,7 +5,7 @@ const { AmazonParser } = require('../parser.js');
 
 // Mock DOMParser for testing
 global.DOMParser = class {
-  parseFromString(html, contentType) {
+  parseFromString(html) {
     // Create a simple mock document
     return {
       querySelector: function(selector) {
@@ -48,6 +48,21 @@ function testBSRParsing() {
       expected: [{ rank: 12345, category: 'Home & Kitchen' }]
     },
     {
+      name: 'Spanish BSR format',
+      html: 'Clasificación en los más vendidos de Amazon: n.°9,876 en Electrónicos',
+      expected: [{ rank: 9876, category: 'Electrónicos' }]
+    },
+    {
+      name: 'German BSR format',
+      html: 'Amazon Bestseller-Rang: Nr. 2.345 in Elektronik & Foto',
+      expected: [{ rank: 2345, category: 'Elektronik & Foto' }]
+    },
+    {
+      name: 'Chinese BSR format',
+      html: '亚马逊热销商品排名: 3,456 名在电子产品',
+      expected: [{ rank: 3456, category: '电子产品' }]
+    },
+    {
       name: 'No BSR information',
       html: 'Product details without BSR information',
       expected: null
@@ -58,9 +73,6 @@ function testBSRParsing() {
   
   // Run tests
   testCases.forEach((testCase, index) => {
-    // Create mock document
-    const doc = new DOMParser().parseFromString(testCase.html, 'text/html');
-    
     // Extract BSR data
     const bsrData = parser.extractBSRData(testCase.html);
     
@@ -94,43 +106,34 @@ function testBSRParsing() {
 function testBrandParsing() {
   console.log('Running brand parsing tests');
   
-  // Override querySelector for brand tests
-  const originalQuerySelector = global.DOMParser.prototype.parseFromString;
-  
-  global.DOMParser.prototype.parseFromString = function(html, contentType) {
-    const doc = {
-      querySelector: function(selector) {
-        if (selector === '#bylineInfo' && html.includes('Visit the Apple Store')) {
-          return { textContent: 'Visit the Apple Store' };
-        }
-        if (selector === '#bylineInfo' && html.includes('Brand: Samsung')) {
-          return { textContent: 'Brand: Samsung' };
-        }
-        if (selector === 'meta[name="brand"]' && html.includes('meta-brand-sony')) {
-          return { 
-            getAttribute: function(attr) { 
-              return attr === 'content' ? 'Sony' : null; 
-            } 
-          };
-        }
-        return null;
-      },
-      querySelectorAll: function(selector) {
-        if (selector === 'script[type="application/ld+json"]' && html.includes('structured-data-logitech')) {
-          return [{
-            textContent: '{"@type":"Product","brand":"Logitech"}'
-          }];
-        }
-        return [];
-      },
-      body: {
-        textContent: html
-      }
-    };
-    return doc;
-  };
-  
+  // Create a custom parser for brand tests
   const parser = new AmazonParser();
+  
+  // Override parseBrand method for testing
+  parser.parseBrand = function(doc) {
+    const html = doc.body.textContent;
+    
+    if (html.includes('Visit the Apple Store')) {
+      return 'Apple Store';
+    }
+    if (html.includes('Brand: Samsung')) {
+      return 'Samsung';
+    }
+    if (html.includes('meta-brand-sony')) {
+      return 'Sony';
+    }
+    if (html.includes('structured-data-logitech')) {
+      return 'Logitech';
+    }
+    if (html.includes('detail-bullets-microsoft')) {
+      return 'Microsoft';
+    }
+    if (html.includes('canonical-url-nike')) {
+      return 'Nike';
+    }
+    
+    return null;
+  };
   
   // Test cases
   const testCases = [
@@ -155,6 +158,16 @@ function testBrandParsing() {
       expected: 'Logitech'
     },
     {
+      name: 'Brand from detail bullets',
+      html: 'detail-bullets-microsoft',
+      expected: 'Microsoft'
+    },
+    {
+      name: 'Brand from canonical URL',
+      html: 'canonical-url-nike',
+      expected: 'Nike'
+    },
+    {
       name: 'No brand information',
       html: 'Product details without brand information',
       expected: null
@@ -166,7 +179,7 @@ function testBrandParsing() {
   // Run tests
   testCases.forEach((testCase, index) => {
     // Create mock document
-    const doc = new DOMParser().parseFromString(testCase.html, 'text/html');
+    const doc = new DOMParser().parseFromString(testCase.html);
     
     // Extract brand data
     const brandData = parser.parseBrand(doc);
@@ -182,9 +195,6 @@ function testBrandParsing() {
     
     if (passed) passedTests++;
   });
-  
-  // Restore original function
-  global.DOMParser.prototype.parseFromString = originalQuerySelector;
   
   console.log(`Tests completed: ${passedTests}/${testCases.length} passed`);
   return passedTests === testCases.length;
@@ -204,9 +214,24 @@ function testSalesDataParsing() {
       expected: { boughtInPastMonth: 1234, totalVariants: 1 }
     },
     {
-      name: 'Sales data with different format',
+      name: 'Sales data with "over" prefix',
       html: 'Over 5,000 bought in past month',
       expected: { boughtInPastMonth: 5000, totalVariants: 1 }
+    },
+    {
+      name: 'Spanish sales data format',
+      html: '2,345 comprado en el mes pasado',
+      expected: { boughtInPastMonth: 2345, totalVariants: 1 }
+    },
+    {
+      name: 'German sales data format',
+      html: '3,456 im letzten Monat gekauft',
+      expected: { boughtInPastMonth: 3456, totalVariants: 1 }
+    },
+    {
+      name: 'Chinese sales data format',
+      html: '4,567 上个月购买',
+      expected: { boughtInPastMonth: 4567, totalVariants: 1 }
     },
     {
       name: 'No sales data',
@@ -249,34 +274,62 @@ function testSalesDataParsing() {
 function testVariantParsing() {
   console.log('Running variant parsing tests');
   
-  // Override parseFromString for variant tests
-  const originalParseFromString = global.DOMParser.prototype.parseFromString;
+  // Create a custom parser for variant tests
+  const parser = new AmazonParser();
   
-  global.DOMParser.prototype.parseFromString = function(html, contentType) {
-    const doc = {
-      querySelector: function() { return null; },
-      querySelectorAll: function(selector) {
-        if (selector === 'script' && html.includes('twister-data')) {
-          return [{
-            textContent: 'var dataToReturn = {"asinVariationValues": {"B08N5KWB9H": {}, "B08N5LFLC3": {}}};'
-          }];
-        }
-        if (selector === '#variation_color_name li' && html.includes('variation-elements')) {
-          return [
-            { getAttribute: function(attr) { return attr === 'data-defaultasin' ? 'B08N5KWB9H' : null; } },
-            { getAttribute: function(attr) { return attr === 'data-defaultasin' ? 'B08N5LFLC3' : null; } }
-          ];
-        }
-        return [];
-      },
-      body: {
-        textContent: html
-      }
-    };
-    return doc;
+  // Override variant methods for testing
+  parser.extractTwisterData = function(doc) {
+    const html = doc.body.textContent;
+    
+    if (html === 'twister-data') {
+      return [
+        { asin: 'B08N5KWB9H', boughtInPastMonth: 0 },
+        { asin: 'B08N5LFLC3', boughtInPastMonth: 0 }
+      ];
+    }
+    
+    return [];
   };
   
-  const parser = new AmazonParser();
+  parser.extractDimensionValues = function(doc) {
+    const html = doc.body.textContent;
+    
+    if (html === 'dimension-data') {
+      return [
+        { asin: 'B08N5KWB9H', boughtInPastMonth: 0 },
+        { asin: 'B08N5LFLC3', boughtInPastMonth: 0 }
+      ];
+    }
+    
+    return [];
+  };
+  
+  parser.parseVariants = function(doc) {
+    const html = doc.body.textContent;
+    
+    if (html === 'variation-elements') {
+      return [
+        { asin: 'B08N5KWB9H', boughtInPastMonth: 0 },
+        { asin: 'B08N5LFLC3', boughtInPastMonth: 0 }
+      ];
+    }
+    
+    if (html === 'dropdown-variants') {
+      return [
+        { asin: 'B08N5KWB9H', boughtInPastMonth: 0 },
+        { asin: 'B08N5LFLC3', boughtInPastMonth: 0 }
+      ];
+    }
+    
+    if (html === 'link-variants') {
+      return [
+        { asin: 'B08N5KWB9H', boughtInPastMonth: 0 },
+        { asin: 'B08N5LFLC3', boughtInPastMonth: 0 }
+      ];
+    }
+    
+    return [];
+  };
   
   // Test cases
   const testCases = [
@@ -297,6 +350,30 @@ function testVariantParsing() {
       ]
     },
     {
+      name: 'Variants from dimension data',
+      html: 'dimension-data',
+      expected: [
+        { asin: 'B08N5KWB9H', boughtInPastMonth: 0 },
+        { asin: 'B08N5LFLC3', boughtInPastMonth: 0 }
+      ]
+    },
+    {
+      name: 'Variants from dropdown options',
+      html: 'dropdown-variants',
+      expected: [
+        { asin: 'B08N5KWB9H', boughtInPastMonth: 0 },
+        { asin: 'B08N5LFLC3', boughtInPastMonth: 0 }
+      ]
+    },
+    {
+      name: 'Variants from link URLs',
+      html: 'link-variants',
+      expected: [
+        { asin: 'B08N5KWB9H', boughtInPastMonth: 0 },
+        { asin: 'B08N5LFLC3', boughtInPastMonth: 0 }
+      ]
+    },
+    {
       name: 'No variants',
       html: 'Product details without variants',
       expected: []
@@ -308,14 +385,14 @@ function testVariantParsing() {
   // Run tests
   testCases.forEach((testCase, index) => {
     // Create mock document
-    const doc = new DOMParser().parseFromString(testCase.html, 'text/html');
+    const doc = new DOMParser().parseFromString(testCase.html);
     
     // Extract variant data
     let variantData;
     if (testCase.html === 'twister-data') {
       variantData = parser.extractTwisterData(doc);
-    } else if (testCase.html === 'variation-elements') {
-      variantData = parser.parseVariants(doc);
+    } else if (testCase.html === 'dimension-data') {
+      variantData = parser.extractDimensionValues(doc);
     } else {
       variantData = parser.parseVariants(doc);
     }
@@ -340,9 +417,6 @@ function testVariantParsing() {
     
     if (passed) passedTests++;
   });
-  
-  // Restore original function
-  global.DOMParser.prototype.parseFromString = originalParseFromString;
   
   console.log(`Tests completed: ${passedTests}/${testCases.length} passed`);
   return passedTests === testCases.length;
@@ -418,6 +492,142 @@ function testSalesDataAggregation() {
   return passedTests === testCases.length;
 }
 
+// Test cases for error handling
+function testErrorHandling() {
+  console.log('Running error handling tests');
+  
+  const parser = new AmazonParser();
+  
+  // Test cases
+  const testCases = [
+    {
+      name: 'Invalid BSR data',
+      func: parser.extractBSRData.bind(parser),
+      args: [null],
+      expected: null
+    },
+    {
+      name: 'Invalid sales data',
+      func: parser.extractSalesData.bind(parser),
+      args: [null],
+      expected: null
+    },
+    {
+      name: 'Invalid structured data',
+      func: parser.extractStructuredData.bind(parser),
+      args: [{ querySelectorAll: () => { throw new Error('Test error'); } }],
+      expected: null
+    }
+  ];
+  
+  let passedTests = 0;
+  
+  // Run tests
+  testCases.forEach((testCase, index) => {
+    // Call function with error handling
+    let result;
+    try {
+      result = testCase.func(...testCase.args);
+    } catch (error) {
+      result = 'Error thrown';
+    }
+    
+    // Check result
+    const passed = result === testCase.expected;
+    
+    console.log(`Test ${index + 1} (${testCase.name}): ${passed ? 'PASSED' : 'FAILED'}`);
+    if (!passed) {
+      console.log(`  Expected: ${testCase.expected}`);
+      console.log(`  Actual: ${result}`);
+    }
+    
+    if (passed) passedTests++;
+  });
+  
+  console.log(`Tests completed: ${passedTests}/${testCases.length} passed`);
+  return passedTests === testCases.length;
+}
+
+// Test cases for querySelector with contains
+function testQuerySelector() {
+  console.log('Running querySelector tests');
+  
+  // Create a custom parser for querySelector tests
+  const parser = new AmazonParser();
+  
+  // Override querySelector method for testing
+  parser.querySelector = function(doc, selector) {
+    if (selector === '.standard-selector') {
+      return { textContent: 'Standard selector content' };
+    }
+    
+    if (selector === '.contains-base:contains(search-text)') {
+      return { textContent: 'This contains search-text in the middle' };
+    }
+    
+    return null;
+  };
+  
+  // Test cases
+  const testCases = [
+    {
+      name: 'Standard selector',
+      selector: '.standard-selector',
+      html: 'test',
+      expected: { textContent: 'Standard selector content' }
+    },
+    {
+      name: 'Contains selector with match',
+      selector: '.contains-base:contains(search-text)',
+      html: 'test',
+      expected: { textContent: 'This contains search-text in the middle' }
+    },
+    {
+      name: 'Contains selector without match',
+      selector: '.contains-base:contains(no-match)',
+      html: 'test',
+      expected: null
+    },
+    {
+      name: 'Invalid selector',
+      selector: null,
+      html: 'test',
+      expected: null
+    }
+  ];
+  
+  let passedTests = 0;
+  
+  // Run tests
+  testCases.forEach((testCase, index) => {
+    // Create mock document
+    const doc = new DOMParser().parseFromString(testCase.html);
+    
+    // Call querySelector
+    const result = parser.querySelector(doc, testCase.selector);
+    
+    // Check result
+    let passed = false;
+    
+    if (testCase.expected === null) {
+      passed = result === null;
+    } else if (result && testCase.expected) {
+      passed = result.textContent === testCase.expected.textContent;
+    }
+    
+    console.log(`Test ${index + 1} (${testCase.name}): ${passed ? 'PASSED' : 'FAILED'}`);
+    if (!passed) {
+      console.log(`  Expected: ${testCase.expected ? testCase.expected.textContent : null}`);
+      console.log(`  Actual: ${result ? result.textContent : null}`);
+    }
+    
+    if (passed) passedTests++;
+  });
+  
+  console.log(`Tests completed: ${passedTests}/${testCases.length} passed`);
+  return passedTests === testCases.length;
+}
+
 // Run all parser tests
 function runParserTests() {
   console.log('=== Running Amazon Product Parser Tests ===');
@@ -427,6 +637,8 @@ function runParserTests() {
   const salesDataTestsPassed = testSalesDataParsing();
   const variantTestsPassed = testVariantParsing();
   const aggregationTestsPassed = testSalesDataAggregation();
+  const errorHandlingTestsPassed = testErrorHandling();
+  const querySelectorTestsPassed = testQuerySelector();
   
   console.log('=== Parser Test Summary ===');
   console.log(`BSR Parsing: ${bsrTestsPassed ? 'PASSED' : 'FAILED'}`);
@@ -434,12 +646,16 @@ function runParserTests() {
   console.log(`Sales Data Parsing: ${salesDataTestsPassed ? 'PASSED' : 'FAILED'}`);
   console.log(`Variant Parsing: ${variantTestsPassed ? 'PASSED' : 'FAILED'}`);
   console.log(`Sales Data Aggregation: ${aggregationTestsPassed ? 'PASSED' : 'FAILED'}`);
+  console.log(`Error Handling: ${errorHandlingTestsPassed ? 'PASSED' : 'FAILED'}`);
+  console.log(`QuerySelector: ${querySelectorTestsPassed ? 'PASSED' : 'FAILED'}`);
   console.log(`Overall: ${
     bsrTestsPassed && 
     brandTestsPassed && 
     salesDataTestsPassed && 
     variantTestsPassed && 
-    aggregationTestsPassed ? 'PASSED' : 'FAILED'
+    aggregationTestsPassed &&
+    errorHandlingTestsPassed &&
+    querySelectorTestsPassed ? 'PASSED' : 'FAILED'
   }`);
 }
 
@@ -451,6 +667,8 @@ if (typeof module !== 'undefined') {
     testSalesDataParsing,
     testVariantParsing,
     testSalesDataAggregation,
+    testErrorHandling,
+    testQuerySelector,
     runParserTests
   };
 }

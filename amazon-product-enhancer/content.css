@@ -8,12 +8,15 @@
   background-color: #f8f8f8;
   font-size: 12px;
   line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .amz-enhancer-title {
   font-weight: bold;
   color: #232F3E;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e7e7e7;
 }
 
 .amz-enhancer-data {
@@ -23,7 +26,8 @@
 
 .amz-enhancer-item {
   margin-right: 12px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  padding: 2px 0;
 }
 
 .amz-enhancer-label {
@@ -35,16 +39,65 @@
   color: #0066c0;
 }
 
-.amz-enhancer-bsr {
-  color: #007600;
+/* BSR specific styles */
+.amz-enhancer-bsr-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 6px;
 }
 
+.amz-enhancer-bsr-item {
+  margin-top: 2px;
+  color: #007600;
+  font-size: 11px;
+}
+
+.amz-enhancer-bsr-toggle {
+  cursor: pointer;
+  color: #0066c0;
+  text-decoration: underline;
+  font-size: 11px;
+}
+
+.amz-enhancer-bsr-dropdown {
+  margin-top: 4px;
+  margin-left: 8px;
+  padding-left: 4px;
+  border-left: 2px solid #e7e7e7;
+}
+
+/* Sales data specific styles */
+.amz-enhancer-sales {
+  color: #B12704;
+}
+
+/* Loading and error states */
 .amz-enhancer-loading {
   color: #565959;
   font-style: italic;
+  display: flex;
+  align-items: center;
+}
+
+.amz-enhancer-loading::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  border: 2px solid #e7e7e7;
+  border-top: 2px solid #0066c0;
+  border-radius: 50%;
+  animation: amz-enhancer-spin 1s linear infinite;
+}
+
+@keyframes amz-enhancer-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .amz-enhancer-error {
   color: #c40000;
   font-style: italic;
+  padding: 2px 0;
 }
